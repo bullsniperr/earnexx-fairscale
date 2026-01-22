@@ -1,1 +1,9 @@
-
+earnexx-fairscale/
+├── backend/
+│   └── fairscore.js
+├── frontend/
+│   └── index.html
+├── images/
+│   └── architecture.png
+├── README.md
+└── LICENSE 

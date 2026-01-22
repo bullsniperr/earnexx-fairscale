@@ -1,20 +1,45 @@
 # EarnExx + FairScale Prototype
 
-## Overview
-EarnExx is a task-based rewards platform on Solana that allows users to earn tokens by completing verifiable tasks. This prototype demonstrates **integration with FairScale**, a Solana-based reputation system, to make **trust a first-class feature** on EarnExx. By incorporating FairScore, rewards are dynamically scaled based on wallet reputation, incentivizing honest and active participation.
+**EarnExx** is a task-based earning platform on Solana where users complete verifiable on-chain tasks to earn tokens. This prototype integrates **FairScale** (on-chain reputation scoring) to make rewards reputation-based: higher FairScore = bigger multipliers, incentivizing genuine participation and reducing sybil/farming attacks.
 
-## Why This Matters
-- **Trust & Security:** Users are wary of task/reward platforms. FairScore ensures only reputable wallets receive higher multipliers, reducing fraud risk.  
-- **Reward Optimization:** High-reputation users are rewarded for their consistent, reliable participation, creating a fair and motivating system.  
-- **Solana Ecosystem Impact:** Demonstrates how on-chain reputation can be leveraged for new use-cases like tiered access, reputation-based rewards, and risk mitigation.
+This directly uses FairScale in core logic—not just displaying a score, but dynamically adjusting economic outcomes (rewards gated/multiplied by reputation tiers).
+
+## Why This Matters for Solana
+- Adds trust primitives to dApps: fairer rewards, better loyalty programs, reduced bot abuse.
+- Aligns incentives: rewards consistent, high-reputation users over extractive ones.
+- Demonstrates real-world usefulness: reputation as a first-class factor in task/earn platforms.
 
 ## Features
-- Fetch FairScore for any wallet
-- Adjust rewards dynamically based on reputation tiers
-- Interactive frontend demo to visualize reward calculations
-- Architecture diagram included
+- Connect Solana wallet and fetch live FairScore via FairScale API.
+- Map FairScore to tiers for reward multipliers.
+- Simulate task completion → see adjusted reward (e.g., low score = base only).
+- Simple frontend demo to visualize the flow.
 
-## Architecture
-![Architecture Diagram](images/architecture.png)
+## FairScale Integration (Meaningful Use)
+We use the FairScale beta API to fetch the real-time FairScore for the connected wallet.
 
-**Flow:**
+- **Endpoint** (from beta Swagger/docs): Likely `GET /v1/score` or similar (check https://swagger.api.fairscale.xyz/ for exact path after authorizing with your key).
+- **Auth**: `fairkey` header or Bearer token with your API key.
+- **Logic**:
+  - Fetch score in `backend/fairscore.js`.
+  - Map to tiers:
+    - < 400 (e.g., my current 219): Basic tier → 1x multiplier (base rewards only).
+    - 400–700: Medium tier → 1.5x multiplier.
+    - >700: High tier → 2x+ multiplier.
+  - Apply multiplier to base reward on task claim.
+- This impacts outcomes: Low-reputation wallets get no boost (prevents farming), high ones earn more.
+
+Example response handling in code (adapt as needed):
+```js
+// backend/fairscore.js excerpt
+async function getFairScore(wallet) {
+  const response = await fetch(`https://api.fairscale.xyz/v1/score?wallet=${wallet}`, {
+    headers: { 'fairkey': process.env.FAIRSCALE_API_KEY }
+  });
+  const data = await response.json();
+  return data.fairscore; // or data.score
+}
+
+// Then in reward calc:
+const multiplier = score < 400 ? 1 : score < 700 ? 1.5 : 2;
+const finalReward = baseReward * multiplier;

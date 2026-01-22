@@ -2,7 +2,7 @@ const axios = require('axios');
 
 // ====== CONFIG ======
 // Replace with your FairScale API key
-const FAIR_API_KEY = 'YOUR_FAIRSCALE_API_KEY';
+const FAIR_API_KEY = '4131062921213b3094ea0c71874f029ccd40b064b6b994d2552921036bdaa246fbdaa13';
 
 // ====== FUNCTIONS ======
 
